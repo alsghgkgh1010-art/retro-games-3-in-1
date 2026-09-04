@@ -133,6 +133,7 @@
     <button id="btnRestart" type="button">↻ 다시하기</button>
     <button id="btnMenu" class="btn-ghost" type="button">◀ 게임 선택</button>
   </div>
+  <button id="btnMusic" class="btn-ghost" type="button" aria-pressed="false" title="배경음악 켜기/끄기 (M)">🔊 음악</button>
 </header>
 
 <main>
@@ -153,7 +154,7 @@
   </section>
 </main>
 
-<footer>수업용 학습 오락실 · 소리 없음 · 인터넷 연결 없이 동작 · 초등 4~6학년</footer>
+<footer>수업용 학습 오락실 · 게임마다 배경음악(<span class="key">M</span> 으로 끄기) · 인터넷 연결 없이 동작 · 초등 4~6학년</footer>
 
 <script type="module">
 /* =========================================================
@@ -163,6 +164,9 @@
    named export INFO 로 교사용 문제 정보 표시
    ※ file:// 더블클릭용은 인라인 배포본(학습-오락실.html) 사용
    ========================================================= */
+
+import { Jukebox } from '../audio/chiptune.js';
+const music = new Jukebox();
 
 const GAMES = [
   { id:'fraction', file:'./fraction-breakout.js', icon:'🧱', subj:'수학', title:'분수 벽돌깨기',
@@ -224,6 +228,7 @@ async function launch(g){
     noEl.textContent = String((st && st.wrong)   || 0);
   };
   current.start();
+  music.play(g.id);        // 게임별 배경음악 (트랙 이름 = 게임 id)
   canvas.focus();
 }
 
@@ -254,6 +259,7 @@ function renderTeacher(){
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 async function shutdown(){
+  music.stop();
   if(current){
     try{ current.stop(); }catch(e){ console.warn('stop() 중 오류:', e); }
     current.onScore=null; current.onGameOver=null; current.onStats=null;
@@ -270,6 +276,18 @@ async function toMenu(){
   teacherEl.classList.remove('on');
   hudEl.hidden=true; menuEl.style.display=''; resetHud();
 }
+
+/* ---------- 배경음악 켜기/끄기 ---------- */
+const musicBtn = $('btnMusic');
+function paintMusicBtn(){
+  musicBtn.textContent = music.muted ? '\uD83D\uDD07 음악 꺼짐' : '\uD83D\uDD0A 음악';
+  musicBtn.setAttribute('aria-pressed', music.muted ? 'true' : 'false');
+}
+paintMusicBtn();
+musicBtn.addEventListener('click', () => { music.toggleMuted(); paintMusicBtn(); });
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'm' || e.key === 'M') { music.toggleMuted(); paintMusicBtn(); }
+});
 
 $('btnMenu').addEventListener('click', toMenu);
 $('btnRestart').addEventListener('click', ()=>{

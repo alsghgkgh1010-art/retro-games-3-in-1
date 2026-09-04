@@ -144,6 +144,7 @@
     <button id="btnRestart" type="button">↻ 다시하기</button>
     <button id="btnMenu" class="btn-ghost" type="button">◀ 게임 선택</button>
   </div>
+  <button id="btnMusic" class="btn-ghost" type="button" aria-pressed="false" title="배경음악 켜기/끄기 (M)">🔊 음악</button>
 </header>
 
 <main>
@@ -166,7 +167,7 @@
   </section>
 </main>
 
-<footer>수업용 레트로 아케이드 · 소리 없음 · 인터넷 연결 없이 동작</footer>
+<footer>수업용 레트로 아케이드 · 게임마다 배경음악(<span class="key">M</span> 으로 끄기) · 인터넷 연결 없이 동작</footer>
 
 <script type="module">
 /* =========================================================
@@ -175,6 +176,9 @@
    - 공통 계약: constructor(canvas) / start() / stop()
    - 옵셔널 훅: onScore(score), onGameOver(score)
    ========================================================= */
+
+import { Jukebox } from './audio/chiptune.js';
+const music = new Jukebox();
 
 const GAMES = [
   { id:'shooter',  file:'./games/shooter.js',  icon:'👾', title:'우주 슈팅',
@@ -248,6 +252,7 @@ async function launch(g) {
   current.onGameOver = (s) => { scoreEl.textContent = String(s ?? 0); };
 
   current.start();
+  music.play(g.id);        // 게임별 배경음악 (트랙 이름 = 게임 id)
   canvas.focus();
 }
 
@@ -264,6 +269,7 @@ function showStage(g) {
 
 /* ---------- 게임 정리 ---------- */
 async function shutdown() {
+  music.stop();
   if (current) {
     try { current.stop(); } catch (e) { console.warn('stop() 중 오류:', e); }
     current.onScore = null;
@@ -286,6 +292,18 @@ async function toMenu() {
 }
 
 /* ---------- 셸 버튼/키 ---------- */
+/* ---------- 배경음악 켜기/끄기 ---------- */
+const musicBtn = $('btnMusic');
+function paintMusicBtn(){
+  musicBtn.textContent = music.muted ? '\uD83D\uDD07 음악 꺼짐' : '\uD83D\uDD0A 음악';
+  musicBtn.setAttribute('aria-pressed', music.muted ? 'true' : 'false');
+}
+paintMusicBtn();
+musicBtn.addEventListener('click', () => { music.toggleMuted(); paintMusicBtn(); });
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'm' || e.key === 'M') { music.toggleMuted(); paintMusicBtn(); }
+});
+
 $('btnMenu').addEventListener('click', toMenu);
 $('btnRestart').addEventListener('click', () => {
   const g = GAMES.find(x => x.id === currentId);

@@ -61,3 +61,10 @@ this.onGameOver // (score:number) => void   게임 종료 시
 ES Module은 `file://` 더블클릭으로 열면 CORS 때문에 로드되지 않는다.
 → 오케스트레이터가 최종 통합 시 **index.html 하나에 전부 인라인한 배포본**을 함께 만든다.
 개발 중 확인은 `python -m http.server` 로 한다.
+
+## 9. 배경음악(BGM)
+BGM 은 **셸이 소유한다.** 게임 모듈은 소리를 직접 내지 않는다.
+- 엔진: `audio/chiptune.js` (Web Audio 로 합성. 외부 mp3·CDN 없음)
+- 셸이 게임 시작 시 `music.play(게임id)`, 정리 시 `music.stop()` 을 호출한다.
+- 곡을 추가·수정하려면 `audio/chiptune.js` 의 `TRACKS` 에 **게임 id 와 같은 이름**으로 넣는다.
+- 워커는 `audio/` 를 수정하지 않는다(오케스트레이터 전용).
