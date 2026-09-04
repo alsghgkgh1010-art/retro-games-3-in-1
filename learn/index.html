@@ -109,6 +109,15 @@
          padding:10px; border-top:2px solid var(--line);}
 
   @media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+  /* ---------- 오락실 전환 링크 ---------- */
+  .swap{
+    display:inline-flex; align-items:center; gap:10px;
+    margin-top:20px; padding:14px 22px; min-height:44px;
+    border:2px solid var(--accent2); border-radius:12px;
+    background:transparent; color:var(--accent2);
+    font-size:1rem; font-weight:700; text-decoration:none;
+  }
+  .swap:hover,.swap:focus-visible{background:var(--accent2); color:#0b0b12}
   @media (min-width:1600px){ body{font-size:20px} #stage{max-width:1200px} }
 </style>
 </head>
@@ -131,6 +140,7 @@
     <h2>어떤 공부를 해볼까요?</h2>
     <p class="sub">게임을 하나 골라 주세요. 게임 중에 <span class="key">ESC</span> 를 누르면 이 화면으로 돌아옵니다.</p>
     <div class="cards" id="cards"></div>
+    <p><a class="swap" href="../">🕹️ 그냥 노는 오락실로 가기</a></p>
   </section>
 
   <section id="stage" aria-live="polite">
