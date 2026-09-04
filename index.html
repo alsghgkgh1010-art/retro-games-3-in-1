@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3-in-1 레트로 아케이드 오락실</title>
+<style>
+  :root{
+    --bg:#0b0b12;
+    --panel:#15152a;
+    --line:#3a3a6a;
+    --ink:#f2f2ff;
+    --dim:#a8a8d0;
+    --accent:#ffd23f;
+    --accent2:#41e0a3;
+    --danger:#ff5c7a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:radial-gradient(circle at 50% 0%, #1d1d3a 0%, var(--bg) 60%);
+    color:var(--ink);
+    font-family:"Pretendard","Malgun Gothic","맑은 고딕",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:18px;
+    line-height:1.6;
+    display:flex;
+    flex-direction:column;
+    min-height:100%;
+  }
+
+  /* ---------- 상단 바 ---------- */
+  header{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:12px clamp(12px,3vw,32px);
+    border-bottom:3px solid var(--line);
+    background:rgba(0,0,0,.35);
+  }
+  .logo{
+    font-size:clamp(20px,2.6vw,30px); font-weight:800; letter-spacing:.02em;
+    margin:0; white-space:nowrap;
+  }
+  .logo .num{color:var(--accent)}
+  .spacer{flex:1}
+  .hud{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .chip{
+    background:var(--panel); border:2px solid var(--line); border-radius:10px;
+    padding:6px 14px; font-weight:700; font-size:clamp(16px,1.8vw,22px);
+    min-height:44px; display:flex; align-items:center; gap:8px;
+  }
+  .chip b{color:var(--accent); font-variant-numeric:tabular-nums}
+  button{
+    font-family:inherit; font-size:clamp(16px,1.8vw,20px); font-weight:700;
+    min-height:44px; padding:8px 18px; border-radius:12px; cursor:pointer;
+    border:3px solid var(--line); background:var(--panel); color:var(--ink);
+    transition:transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  button:hover{background:#22224a; border-color:var(--accent)}
+  button:active{transform:translateY(2px)}
+  button:focus-visible{outline:4px solid var(--accent2); outline-offset:3px}
+  .btn-ghost{background:transparent}
+
+  /* ---------- 본문 ---------- */
+  main{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+       padding:clamp(12px,3vw,28px); width:100%;}
+
+  /* 게임 선택 화면 */
+  #menu{width:100%; max-width:1100px; text-align:center}
+  #menu h2{font-size:clamp(22px,3vw,34px); margin:0 0 6px}
+  #menu .sub{color:var(--dim); margin:0 0 clamp(16px,3vw,32px); font-size:clamp(16px,1.8vw,20px)}
+  .cards{
+    display:grid; gap:clamp(14px,2.5vw,26px);
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  }
+  .card{
+    background:var(--panel); border:4px solid var(--line); border-radius:20px;
+    padding:clamp(18px,2.5vw,28px); cursor:pointer; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    min-height:230px; justify-content:center;
+    transition:transform .12s ease, border-color .15s ease, background .15s ease;
+    font:inherit; color:inherit;
+  }
+  .card:hover{border-color:var(--accent); background:#1e1e3d; transform:translateY(-4px)}
+  .card:focus-visible{outline:4px solid var(--accent2); outline-offset:4px}
+  .card .icon{font-size:clamp(46px,6vw,68px); line-height:1}
+  .card .title{font-size:clamp(20px,2.4vw,26px); font-weight:800}
+  .card .desc{color:var(--dim); font-size:clamp(15px,1.6vw,17px)}
+  .card .keys{margin-top:4px; font-size:15px; color:var(--accent2); font-weight:700}
+
+  /* 게임 화면 */
+  #stage{display:none; width:100%; max-width:1000px}
+  #stage.on{display:block}
+  .frame{
+    border:6px solid var(--line); border-radius:18px; overflow:hidden;
+    background:#000; box-shadow:0 0 0 4px #000, 0 18px 40px rgba(0,0,0,.6);
+    aspect-ratio:4/3; width:100%;
+  }
+  canvas{display:block; width:100%; height:100%; background:var(--bg); touch-action:none}
+  .helpbar{
+    display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+    margin-top:14px; color:var(--dim); font-size:clamp(15px,1.7vw,18px);
+  }
+  .key{
+    background:var(--panel); border:2px solid var(--line); border-radius:8px;
+    padding:2px 10px; font-weight:700; color:var(--ink);
+  }
+  #err{
+    display:none; margin-top:16px; padding:14px 18px; border-radius:12px;
+    border:3px solid var(--danger); background:#2a1220; color:#ffd9e2;
+    font-size:17px; white-space:pre-wrap; text-align:left;
+  }
+  #err.on{display:block}
+
+  footer{
+    text-align:center; color:var(--dim); font-size:15px;
+    padding:10px; border-top:2px solid var(--line);
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important; animation:none !important}
+  }
+  /* 대화면(교실 TV) 대응 */
+  @media (min-width:1600px){
+    body{font-size:20px}
+    #stage{max-width:1200px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="logo"><span class="num">3</span>-in-<span class="num">1</span> 레트로 오락실</h1>
+  <div class="spacer"></div>
+  <div class="hud" id="hud" hidden>
+    <div class="chip">점수 <b id="score">0</b></div>
+    <button id="btnRestart" type="button">↻ 다시하기</button>
+    <button id="btnMenu" class="btn-ghost" type="button">◀ 게임 선택</button>
+  </div>
+</header>
+
+<main>
+  <!-- 게임 선택 -->
+  <section id="menu">
+    <h2>어떤 게임을 할까요?</h2>
+    <p class="sub">게임을 하나 골라 주세요. 게임 중에 <span class="key">ESC</span> 를 누르면 다시 이 화면으로 돌아옵니다.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section id="stage" aria-live="polite">
+    <div class="frame">
+      <canvas id="screen" width="800" height="600" tabindex="0" aria-label="게임 화면"></canvas>
+    </div>
+    <div class="helpbar" id="helpbar"></div>
+    <div id="err" role="alert"></div>
+  </section>
+</main>
+
+<footer>수업용 레트로 아케이드 · 소리 없음 · 인터넷 연결 없이 동작</footer>
+
+<script type="module">
+/* =========================================================
+   오케스트레이터 셸
+   - games/*.js 의 default export 클래스를 동적 import 해서 구동
+   - 공통 계약: constructor(canvas) / start() / stop()
+   - 옵셔널 훅: onScore(score), onGameOver(score)
+   ========================================================= */
+
+const GAMES = [
+  { id:'shooter',  file:'./games/shooter.js',  icon:'👾', title:'우주 슈팅',
+    desc:'침략해 오는 외계 함대를 막아라!',
+    keys:'← → 이동 · 스페이스 발사' },
+  { id:'breakout', file:'./games/breakout.js', icon:'🧱', title:'벽돌깨기',
+    desc:'공을 튕겨 벽돌을 전부 부수자!',
+    keys:'← → 이동 · 스페이스 발사' },
+  { id:'snake',    file:'./games/snake.js',    icon:'🐍', title:'지렁이 게임',
+    desc:'먹이를 먹고 길어져라. 몸에 부딪히면 끝!',
+    keys:'← ↑ → ↓ 이동' },
+];
+
+const $ = (id) => document.getElementById(id);
+const cardsEl   = $('cards');
+const menuEl    = $('menu');
+const stageEl   = $('stage');
+const canvas    = $('screen');
+const hudEl     = $('hud');
+const scoreEl   = $('score');
+const helpbarEl = $('helpbar');
+const errEl     = $('err');
+
+let current = null;   // 실행 중인 게임 인스턴스
+let currentId = null;
+
+/* ---------- 메뉴 카드 생성 ---------- */
+for (const g of GAMES) {
+  const btn = document.createElement('button');
+  btn.className = 'card';
+  btn.type = 'button';
+  btn.innerHTML =
+    '<span class="icon" aria-hidden="true">' + g.icon + '</span>' +
+    '<span class="title">' + g.title + '</span>' +
+    '<span class="desc">' + g.desc + '</span>' +
+    '<span class="keys">' + g.keys + '</span>';
+  btn.addEventListener('click', () => launch(g));
+  cardsEl.appendChild(btn);
+}
+
+/* ---------- 게임 실행 ---------- */
+async function launch(g) {
+  hideError();
+  await shutdown();                 // 이전 게임 완전 정리 (리스너 누수 방지)
+
+  let Klass;
+  try {
+    const mod = await import(g.file);
+    Klass = mod.default;
+    if (typeof Klass !== 'function') throw new Error('default export 가 클래스가 아닙니다.');
+  } catch (e) {
+    showStage(g);
+    showError(
+      '"' + g.title + '" 을(를) 불러오지 못했습니다.\n\n' +
+      e.message + '\n\n' +
+      '※ 이 페이지를 파일 더블클릭(file://)으로 열면 브라우저 보안 정책 때문에\n' +
+      '   게임 파일을 불러올 수 없습니다. 배포본(레트로-오락실.html)을 사용하거나\n' +
+      '   폴더에서 로컬 서버로 여세요:  python -m http.server'
+    );
+    return;
+  }
+
+  showStage(g);
+
+  current = new Klass(canvas);
+  currentId = g.id;
+
+  // 점수 훅 연결
+  scoreEl.textContent = '0';
+  current.onScore    = (s) => { scoreEl.textContent = String(s ?? 0); };
+  current.onGameOver = (s) => { scoreEl.textContent = String(s ?? 0); };
+
+  current.start();
+  canvas.focus();
+}
+
+function showStage(g) {
+  menuEl.style.display = 'none';
+  stageEl.classList.add('on');
+  hudEl.hidden = false;
+  helpbarEl.innerHTML =
+    '<span class="key">' + g.keys.split(' · ').join('</span> <span class="key">') + '</span>' +
+    '<span><span class="key">P</span> 일시정지</span>' +
+    '<span><span class="key">R</span> 다시하기</span>' +
+    '<span><span class="key">ESC</span> 게임 선택</span>';
+}
+
+/* ---------- 게임 정리 ---------- */
+async function shutdown() {
+  if (current) {
+    try { current.stop(); } catch (e) { console.warn('stop() 중 오류:', e); }
+    current.onScore = null;
+    current.onGameOver = null;
+  }
+  current = null;
+  currentId = null;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+async function toMenu() {
+  await shutdown();
+  hideError();
+  stageEl.classList.remove('on');
+  hudEl.hidden = true;
+  menuEl.style.display = '';
+  scoreEl.textContent = '0';
+}
+
+/* ---------- 셸 버튼/키 ---------- */
+$('btnMenu').addEventListener('click', toMenu);
+$('btnRestart').addEventListener('click', () => {
+  const g = GAMES.find(x => x.id === currentId);
+  if (g) launch(g);
+});
+
+// ESC = 메뉴로. (게임은 ESC 를 쓰지 않기로 계약)
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && stageEl.classList.contains('on')) { e.preventDefault(); toMenu(); }
+});
+
+// 게임 중 방향키/스페이스로 페이지가 스크롤되지 않게
+window.addEventListener('keydown', (e) => {
+  if (!current) return;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Spacebar'].includes(e.key)) {
+    e.preventDefault();
+  }
+}, { passive:false });
+
+function showError(msg){ errEl.textContent = msg; errEl.classList.add('on'); }
+function hideError(){ errEl.textContent = ''; errEl.classList.remove('on'); }
+</script>
+</body>
+</html>

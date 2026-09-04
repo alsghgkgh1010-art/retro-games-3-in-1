@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3-in-1 학습 오락실 · 초등 고학년</title>
+<style>
+  :root{
+    --bg:#0b0b12; --panel:#15152a; --line:#3a3a6a;
+    --ink:#f2f2ff; --dim:#a8a8d0;
+    --accent:#ffd23f; --accent2:#41e0a3; --danger:#ff5c7a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:radial-gradient(circle at 50% 0%, #1d1d3a 0%, var(--bg) 60%);
+    color:var(--ink);
+    font-family:"Pretendard","Malgun Gothic","맑은 고딕",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:18px; line-height:1.6;
+    display:flex; flex-direction:column; min-height:100%;
+  }
+
+  header{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:12px clamp(12px,3vw,32px);
+    border-bottom:3px solid var(--line); background:rgba(0,0,0,.35);
+  }
+  .logo{font-size:clamp(20px,2.6vw,30px); font-weight:800; margin:0; white-space:nowrap}
+  .logo .num{color:var(--accent)}
+  .spacer{flex:1}
+  .hud{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .chip{
+    background:var(--panel); border:2px solid var(--line); border-radius:10px;
+    padding:6px 14px; font-weight:700; font-size:clamp(16px,1.8vw,22px);
+    min-height:44px; display:flex; align-items:center; gap:8px;
+  }
+  .chip b{font-variant-numeric:tabular-nums}
+  .chip.score b{color:var(--accent)}
+  .chip.ox b.ok{color:var(--accent2)}
+  .chip.ox b.no{color:var(--danger)}
+  button{
+    font-family:inherit; font-size:clamp(16px,1.8vw,20px); font-weight:700;
+    min-height:44px; padding:8px 18px; border-radius:12px; cursor:pointer;
+    border:3px solid var(--line); background:var(--panel); color:var(--ink);
+    transition:transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  button:hover{background:#22224a; border-color:var(--accent)}
+  button:active{transform:translateY(2px)}
+  button:focus-visible{outline:4px solid var(--accent2); outline-offset:3px}
+  .btn-ghost{background:transparent}
+
+  main{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+       padding:clamp(12px,3vw,28px); width:100%;}
+
+  #menu{width:100%; max-width:1100px; text-align:center}
+  #menu h2{font-size:clamp(22px,3vw,34px); margin:0 0 6px}
+  #menu .sub{color:var(--dim); margin:0 0 clamp(16px,3vw,32px); font-size:clamp(16px,1.8vw,20px)}
+  .cards{display:grid; gap:clamp(14px,2.5vw,26px); grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+  .card{
+    background:var(--panel); border:4px solid var(--line); border-radius:20px;
+    padding:clamp(18px,2.5vw,28px); cursor:pointer; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    min-height:250px; justify-content:center;
+    transition:transform .12s ease, border-color .15s ease, background .15s ease;
+    font:inherit; color:inherit;
+  }
+  .card:hover{border-color:var(--accent); background:#1e1e3d; transform:translateY(-4px)}
+  .card:focus-visible{outline:4px solid var(--accent2); outline-offset:4px}
+  .card .icon{font-size:clamp(46px,6vw,68px); line-height:1}
+  .card .title{font-size:clamp(20px,2.4vw,26px); font-weight:800}
+  .card .subj{
+    font-size:15px; font-weight:700; color:#0b0b12; background:var(--accent2);
+    border-radius:999px; padding:2px 12px;
+  }
+  .card .desc{color:var(--dim); font-size:clamp(15px,1.6vw,17px)}
+  .card .keys{margin-top:2px; font-size:15px; color:var(--accent2); font-weight:700}
+
+  #stage{display:none; width:100%; max-width:1000px}
+  #stage.on{display:block}
+  .frame{
+    border:6px solid var(--line); border-radius:18px; overflow:hidden;
+    background:#000; box-shadow:0 0 0 4px #000, 0 18px 40px rgba(0,0,0,.6);
+    aspect-ratio:4/3; width:100%;
+  }
+  canvas{display:block; width:100%; height:100%; background:var(--bg); touch-action:none}
+  .helpbar{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+           margin-top:14px; color:var(--dim); font-size:clamp(15px,1.7vw,18px);}
+  .key{background:var(--panel); border:2px solid var(--line); border-radius:8px;
+       padding:2px 10px; font-weight:700; color:var(--ink);}
+
+  /* 교사용 패널 */
+  #teacher{
+    display:none; margin-top:16px; padding:16px 20px; border-radius:14px;
+    border:3px dashed var(--accent); background:#1a1630; text-align:left;
+  }
+  #teacher.on{display:block}
+  #teacher h3{margin:0 0 6px; font-size:20px; color:var(--accent)}
+  #teacher .meta{color:var(--dim); font-size:16px; margin:0 0 10px}
+  #teacher ul{margin:0; padding-left:22px; columns:2; column-gap:28px}
+  #teacher li{font-size:17px; margin-bottom:4px; break-inside:avoid}
+  @media (max-width:700px){ #teacher ul{columns:1} }
+
+  #err{display:none; margin-top:16px; padding:14px 18px; border-radius:12px;
+       border:3px solid var(--danger); background:#2a1220; color:#ffd9e2;
+       font-size:17px; white-space:pre-wrap; text-align:left;}
+  #err.on{display:block}
+
+  footer{text-align:center; color:var(--dim); font-size:15px;
+         padding:10px; border-top:2px solid var(--line);}
+
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+  @media (min-width:1600px){ body{font-size:20px} #stage{max-width:1200px} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="logo"><span class="num">3</span>-in-<span class="num">1</span> 학습 오락실</h1>
+  <div class="spacer"></div>
+  <div class="hud" id="hud" hidden>
+    <div class="chip score">점수 <b id="score">0</b></div>
+    <div class="chip ox">O <b class="ok" id="okCnt">0</b> · X <b class="no" id="noCnt">0</b></div>
+    <button id="btnTeacher" class="btn-ghost" type="button">🧑‍🏫 교사용</button>
+    <button id="btnRestart" type="button">↻ 다시하기</button>
+    <button id="btnMenu" class="btn-ghost" type="button">◀ 게임 선택</button>
+  </div>
+</header>
+
+<main>
+  <section id="menu">
+    <h2>어떤 공부를 해볼까요?</h2>
+    <p class="sub">게임을 하나 골라 주세요. 게임 중에 <span class="key">ESC</span> 를 누르면 이 화면으로 돌아옵니다.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="stage" aria-live="polite">
+    <div class="frame">
+      <canvas id="screen" width="800" height="600" tabindex="0" aria-label="게임 화면"></canvas>
+    </div>
+    <div class="helpbar" id="helpbar"></div>
+    <div id="teacher" role="region" aria-label="교사용 문제 정보"></div>
+    <div id="err" role="alert"></div>
+  </section>
+</main>
+
+<footer>수업용 학습 오락실 · 소리 없음 · 인터넷 연결 없이 동작 · 초등 4~6학년</footer>
+
+<script type="module">
+/* =========================================================
+   학습 오락실 셸 (개발용 · ES Module 로더)
+   계약 v2: constructor(canvas) / start() / stop()
+   훅: onScore(score), onGameOver(score), onStats({correct,wrong})
+   named export INFO 로 교사용 문제 정보 표시
+   ※ file:// 더블클릭용은 인라인 배포본(학습-오락실.html) 사용
+   ========================================================= */
+
+const GAMES = [
+  { id:'fraction', file:'./fraction-breakout.js', icon:'🧱', subj:'수학', title:'분수 벽돌깨기',
+    desc:'문제의 답이 적힌 벽돌을 공으로 맞혀요.', keys:'← → 이동 · 스페이스 발사' },
+  { id:'word',     file:'./word-shooter.js',      icon:'🔤', subj:'영어', title:'영단어 슈팅',
+    desc:'뜻에 맞는 영어 단어를 찾아서 쏘세요.',   keys:'← → 이동 · 스페이스 발사' },
+  { id:'math',     file:'./math-snake.js',        icon:'🐍', subj:'수학', title:'연산 지렁이',
+    desc:'답이 적힌 먹이를 찾아 먹어요.',          keys:'← ↑ → ↓ 이동' },
+];
+
+const $ = (id) => document.getElementById(id);
+const cardsEl=$('cards'), menuEl=$('menu'), stageEl=$('stage'), canvas=$('screen');
+const hudEl=$('hud'), scoreEl=$('score'), okEl=$('okCnt'), noEl=$('noCnt');
+const helpbarEl=$('helpbar'), teacherEl=$('teacher'), errEl=$('err');
+
+let current=null, currentId=null, currentInfo=null;
+
+for (const g of GAMES) {
+  const btn=document.createElement('button');
+  btn.className='card'; btn.type='button';
+  btn.innerHTML =
+    '<span class="icon" aria-hidden="true">'+g.icon+'</span>'+
+    '<span class="subj">'+g.subj+'</span>'+
+    '<span class="title">'+g.title+'</span>'+
+    '<span class="desc">'+g.desc+'</span>'+
+    '<span class="keys">'+g.keys+'</span>';
+  btn.addEventListener('click',()=>launch(g));
+  cardsEl.appendChild(btn);
+}
+
+async function launch(g){
+  hideError();
+  await shutdown();
+
+  let Klass=null, INFO=null;
+  try{
+    const mod = await import(g.file);
+    Klass = mod.default; INFO = mod.INFO || null;
+    if (typeof Klass !== 'function') throw new Error('default export 가 클래스가 아닙니다.');
+  }catch(e){
+    showStage(g);
+    showError('"'+g.title+'" 을(를) 불러오지 못했습니다.\n\n'+e.message+'\n\n'+
+      '※ 이 페이지를 파일 더블클릭(file://)으로 열면 브라우저 보안 정책 때문에\n'+
+      '   게임 파일을 불러올 수 없습니다. 배포본(학습-오락실.html)을 쓰거나\n'+
+      '   폴더에서 로컬 서버로 여세요:  python -m http.server');
+    return;
+  }
+
+  showStage(g);
+  currentInfo = INFO; renderTeacher();
+
+  current = new Klass(canvas);
+  currentId = g.id;
+  resetHud();
+  current.onScore    = (s)=>{ scoreEl.textContent = String(s ?? 0); };
+  current.onGameOver = (s)=>{ scoreEl.textContent = String(s ?? 0); };
+  current.onStats    = (st)=>{
+    okEl.textContent = String((st && st.correct) || 0);
+    noEl.textContent = String((st && st.wrong)   || 0);
+  };
+  current.start();
+  canvas.focus();
+}
+
+function resetHud(){ scoreEl.textContent='0'; okEl.textContent='0'; noEl.textContent='0'; }
+
+function showStage(g){
+  menuEl.style.display='none';
+  stageEl.classList.add('on');
+  hudEl.hidden=false;
+  helpbarEl.innerHTML =
+    '<span class="key">'+g.keys.split(' · ').join('</span> <span class="key">')+'</span>'+
+    '<span><span class="key">P</span> 일시정지</span>'+
+    '<span><span class="key">R</span> 다시하기</span>'+
+    '<span><span class="key">ESC</span> 게임 선택</span>';
+}
+
+function renderTeacher(){
+  teacherEl.classList.remove('on');
+  if(!currentInfo){ teacherEl.innerHTML='<p class="meta">이 게임은 교사용 정보를 제공하지 않습니다.</p>'; return; }
+  const i=currentInfo;
+  const items=Array.isArray(i.items)?i.items:[];
+  teacherEl.innerHTML =
+    '<h3>🧑‍🏫 교사용 · '+esc(i.goal||'')+'</h3>'+
+    '<p class="meta">'+esc(i.subject||'')+' · '+esc(i.grade||'')+
+      ' · 예상 '+esc(String(i.minutes||'-'))+'분<br>'+esc(i.howto||'')+'</p>'+
+    (items.length ? '<ul>'+items.map(t=>'<li>'+esc(String(t))+'</li>').join('')+'</ul>' : '');
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function shutdown(){
+  if(current){
+    try{ current.stop(); }catch(e){ console.warn('stop() 중 오류:', e); }
+    current.onScore=null; current.onGameOver=null; current.onStats=null;
+  }
+  current=null; currentId=null;
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+async function toMenu(){
+  await shutdown(); hideError();
+  stageEl.classList.remove('on');
+  teacherEl.classList.remove('on');
+  hudEl.hidden=true; menuEl.style.display=''; resetHud();
+}
+
+$('btnMenu').addEventListener('click', toMenu);
+$('btnRestart').addEventListener('click', ()=>{
+  const g=GAMES.find(x=>x.id===currentId); if(g) launch(g);
+});
+$('btnTeacher').addEventListener('click', ()=>{
+  teacherEl.classList.toggle('on');
+  if(teacherEl.classList.contains('on')) teacherEl.scrollIntoView({block:'nearest'});
+});
+
+// ESC = 메뉴로 (게임은 ESC 를 쓰지 않기로 계약)
+window.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape' && stageEl.classList.contains('on')){ e.preventDefault(); toMenu(); }
+});
+// 게임 중 방향키/스페이스로 페이지 스크롤 방지
+window.addEventListener('keydown',(e)=>{
+  if(!current) return;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Spacebar'].includes(e.key)) e.preventDefault();
+},{passive:false});
+
+function showError(m){ errEl.textContent=m; errEl.classList.add('on'); }
+function hideError(){ errEl.textContent=''; errEl.classList.remove('on'); }
+</script>
+</body>
+</html>
